@@ -1,0 +1,40 @@
+# docker-compose.yml para SearXNG (~/docker/searxng/docker-compose.yml)
+services:
+  searxng:
+    container_name: searxng
+    image: searxng/searxng:latest
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./searxng:/etc/searxng
+    networks:
+      - ai
+    restart: unless-stopped
+
+networks:
+  ai:
+    external: true
+
+# compose.yml para Open WebUI (~/docker/open-webui/compose.yml)
+services:
+  openwebui:
+    container_name: open-webui
+    image: ghcr.io/open-webui/open-webui:main
+    ports:
+      - "7000:8080"
+    environment:
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
+      - WEBUI_AUTH=True
+      - WEBUI_REGISTER=false
+      - ENABLE_WEB_SEARCH=true
+      - WEB_SEARCH_ENGINE=searxng
+      - SEARXNG_QUERY_URL=http://searxng:8080/search?q=<query>
+    volumes:
+      - ./open-webui-data:/app/backend/data
+    networks:
+      - ai
+    restart: unless-stopped
+
+networks:
+  ai:
+    external: true
